@@ -19,7 +19,6 @@ public class Absensi {
         this.shift = shift;
     }
 
-    // Getters dan Setters
     public int getId() {
         return id;
     }
@@ -58,7 +57,7 @@ public class Absensi {
 
     @Override
     public String toString() {
-        return "ID: " + id + ", Tgl: " + tanggal + ", Pegawai: " + pegawai.getNama() +
-                ", Masuk: " + jamMasuk + ", Keluar: " + jamKeluar + ", Status: " + status;
+        return "ID: " + id + ", Tgl: " + tanggal + ", Pegawai: " + pegawai.getNama() + ", Masuk: " + jamMasuk
+                + ", Keluar: " + jamKeluar + ", Status: " + status;
     }
 }

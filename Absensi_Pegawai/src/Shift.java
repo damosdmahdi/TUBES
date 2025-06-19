@@ -13,7 +13,6 @@ public class Shift {
         this.jamSelesai = jamSelesai;
     }
 
-    // Getters dan Setters
     public int getIdShift() {
         return idShift;
     }

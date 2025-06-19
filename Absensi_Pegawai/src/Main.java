@@ -13,7 +13,7 @@ public class Main {
     private static List<Laporan> dbLaporan = new ArrayList<>();
     private static List<User> dbUser = new ArrayList<>();
 
-    private static AtomicInteger userIdCounter = new AtomicInteger(1);
+    private static AtomicInteger userIdCounter = new AtomicInteger(0);
     private static AtomicInteger shiftIdCounter = new AtomicInteger(1);
     private static AtomicInteger absensiIdCounter = new AtomicInteger(1);
     private static AtomicInteger laporanIdCounter = new AtomicInteger(1);
@@ -32,7 +32,6 @@ public class Main {
             System.out.println("2. Pegawai");
             System.out.println("0. Keluar Aplikasi");
             System.out.print("Pilihan Anda: ");
-
             try {
                 pilihanUtama = scanner.nextInt();
                 scanner.nextLine();
@@ -47,16 +46,13 @@ public class Main {
                     case 0:
                         System.out.println("Terima kasih telah menggunakan aplikasi.");
                         break;
-                    default:
-                        System.out.println("Pilihan tidak valid.");
-                        break;
                 }
             } catch (InputMismatchException e) {
                 System.out.println("ERROR: Masukkan harus berupa angka!");
                 scanner.nextLine();
             }
         }
-        scanner.close();
+        // scanner.close();
 
     }
 
@@ -84,11 +80,21 @@ public class Main {
     private static void menuAdmin(Scanner scanner) {
         Admin admin = (Admin) dbUser.stream().filter(u -> u instanceof Admin).findFirst().orElse(null);
         if (admin == null) {
-            System.out.println("Admin tidak ditemukan!");
+            System.out.println("Tidak ada user Admin yang terdaftar.");
             return;
         }
 
-        System.out.println("\n--- Selamat Datang, " + admin.getNama() + " ---");
+        // --- BAGIAN YANG DITAMBAHKAN ---
+        System.out.print("Masukkan password untuk " + admin.getNama() + ": ");
+        String passwordInput = scanner.nextLine();
+
+        if (!admin.getPassword().equals(passwordInput)) {
+            System.out.println("Password salah! Akses ditolak.");
+            return; // Hentikan method jika password salah
+        }
+        // --- AKHIR BAGIAN YANG DITAMBAHKAN ---
+
+        System.out.println("\nLogin berhasil! Selamat datang, " + admin.getNama() + ".");
         int pilihan = -1;
         while (pilihan != 0) {
             System.out.println("\n--- Menu Admin ---");
@@ -97,14 +103,12 @@ public class Main {
             System.out.println("3. Ubah Data Pegawai (Update)");
             System.out.println("4. Hapus Pegawai (Delete)");
             System.out.println("5. Buat Laporan Absensi");
-            System.out.println("0. Kembali ke Menu Utama");
+            System.out.println("0. Logout");
             System.out.print("Pilihan Anda: ");
 
             try {
                 pilihan = scanner.nextInt();
                 scanner.nextLine();
-
-                // Menggunakan sintaks switch klasik yang kompatibel dengan Java versi lama
                 switch (pilihan) {
                     case 1:
                         admin.createPegawai(scanner, dbPegawai, userIdCounter);
@@ -153,44 +157,56 @@ public class Main {
     }
 
     private static void menuPegawai(Scanner scanner) {
-        System.out.println("\n--- Pilih Akun Pegawai (Simulasi Login) ---");
+        System.out.println("\n--- Silakan Pilih Akun Anda ---");
         if (dbPegawai.isEmpty()) {
-            System.out.println("Tidak ada data pegawai. Silakan hubungi Admin.");
+            System.out.println("Tidak ada data pegawai yang terdaftar.");
             return;
         }
 
         for (int i = 0; i < dbPegawai.size(); i++) {
             System.out.println((i + 1) + ". " + dbPegawai.get(i).getNama());
         }
-        System.out.print("Pilihan: ");
-        int pilihanPegawai = scanner.nextInt();
-        scanner.nextLine();
+        System.out.print("Pilihan Anda: ");
 
-        if (pilihanPegawai < 1 || pilihanPegawai > dbPegawai.size()) {
-            System.out.println("Pilihan tidak valid.");
-            return;
-        }
-        Pegawai pegawaiLogin = dbPegawai.get(pilihanPegawai - 1);
+        try {
+            int pilihanUser = scanner.nextInt();
+            scanner.nextLine();
 
-        System.out.println("\n--- Selamat Datang, " + pegawaiLogin.getNama() + " ---");
-        int pilihan = -1;
-        while (pilihan != 0) {
-            System.out.println("\n--- Menu Pegawai ---");
-            System.out.println("1. Rekam Absensi Masuk");
-            System.out.println("2. Rekam Absensi Keluar");
-            System.out.println("0. Kembali ke Menu Utama");
-            System.out.print("Pilihan Anda: ");
+            if (pilihanUser < 1 || pilihanUser > dbPegawai.size()) {
+                System.out.println("Pilihan tidak valid.");
+                return;
+            }
 
-            try {
-                pilihan = scanner.nextInt();
+            Pegawai pegawaiDipilih = dbPegawai.get(pilihanUser - 1);
+
+            // --- BAGIAN YANG DITAMBAHKAN ---
+            System.out.print("Masukkan password untuk " + pegawaiDipilih.getNama() + ": ");
+            String passwordInput = scanner.nextLine();
+
+            if (!pegawaiDipilih.getPassword().equals(passwordInput)) {
+                System.out.println("Password salah! Akses ditolak.");
+                return; // Hentikan method jika password salah
+            }
+            // --- AKHIR BAGIAN YANG DITAMBAHKAN ---
+
+            System.out.println("\nLogin berhasil! Selamat datang, " + pegawaiDipilih.getNama() + ".");
+            int pilihanMenu = -1;
+            while (pilihanMenu != 0) {
+                System.out.println("\n--- Menu Absensi ---");
+                System.out.println("1. Rekam Absensi Masuk");
+                System.out.println("2. Rekam Absensi Keluar");
+                System.out.println("0. Logout");
+                System.out.print("Pilihan Anda: ");
+
+                pilihanMenu = scanner.nextInt();
                 scanner.nextLine();
 
-                switch (pilihan) {
+                switch (pilihanMenu) {
                     case 1:
-                        rekamAbsensiMasuk(scanner, pegawaiLogin);
+                        rekamAbsensiMasuk(scanner, pegawaiDipilih);
                         break;
                     case 2:
-                        rekamAbsensiKeluar(pegawaiLogin);
+                        rekamAbsensiKeluar(pegawaiDipilih);
                         break;
                     case 0:
                         break;
@@ -198,10 +214,11 @@ public class Main {
                         System.out.println("Pilihan tidak valid.");
                         break;
                 }
-            } catch (Exception e) {
-                System.out.println("Terjadi error: " + e.getMessage());
-                scanner.nextLine();
             }
+
+        } catch (InputMismatchException e) {
+            System.out.println("ERROR: Masukkan harus berupa angka!");
+            scanner.nextLine();
         }
     }
 
