@@ -1,8 +1,13 @@
+package Penggunal;
+
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Admin extends User {
+import absensi.Absensi;
+import laporan.Laporan;
+
+public class Admin extends User implements CRUD {
     public Admin(int id, String nama, String username, String password) {
         super(id, nama, username, password);
     }
@@ -86,8 +91,6 @@ public class Admin extends User {
                 .filter(abs -> abs.getPegawai().equals(p))
                 .filter(abs -> abs.getTanggal().getMonthValue() == bulan)
                 .filter(abs -> abs.getTanggal().getYear() == tahun)
-                .filter(abs -> abs.getStatus().equalsIgnoreCase("Hadir")
-                        || abs.getStatus().equalsIgnoreCase("Terlambat"))
                 .count();
 
         Laporan laporanBaru = new Laporan(idCounter.getAndIncrement(), bulan, tahun, (int) totalHadir, p);

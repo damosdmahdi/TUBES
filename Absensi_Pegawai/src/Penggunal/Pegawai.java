@@ -1,3 +1,4 @@
+package Penggunal;
 
 public class Pegawai extends User {
     private int nip;

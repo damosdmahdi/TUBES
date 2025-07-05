@@ -1,3 +1,4 @@
+package Penggunal;
 
 public abstract class User {
     private int id;

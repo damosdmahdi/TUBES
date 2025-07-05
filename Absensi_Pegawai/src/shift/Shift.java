@@ -1,3 +1,5 @@
+package shift;
+
 import java.time.LocalTime;
 
 public class Shift {

@@ -1,3 +1,6 @@
+package laporan;
+
+import Penggunal.Pegawai;
 
 public class Laporan {
     private int id;

@@ -1,3 +1,4 @@
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -5,16 +6,19 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
+import Penggunal.Admin;
+import Penggunal.Pegawai;
+import Penggunal.User;
+import absensi.Absensi;
+import laporan.Laporan;
 
 public class Main {
     private static List<Pegawai> dbPegawai = new ArrayList<>();
-    private static List<Shift> dbShift = new ArrayList<>();
     private static List<Absensi> dbAbsensi = new ArrayList<>();
     private static List<Laporan> dbLaporan = new ArrayList<>();
     private static List<User> dbUser = new ArrayList<>();
 
     private static AtomicInteger userIdCounter = new AtomicInteger(0);
-    private static AtomicInteger shiftIdCounter = new AtomicInteger(1);
     private static AtomicInteger absensiIdCounter = new AtomicInteger(1);
     private static AtomicInteger laporanIdCounter = new AtomicInteger(1);
 
@@ -61,13 +65,6 @@ public class Main {
         Admin admin = new Admin(userIdCounter.getAndIncrement(), "Admin Utama", "admin", "admin123");
         dbUser.add(admin);
 
-        // Shift
-        Shift shiftPagi = new Shift(shiftIdCounter.getAndIncrement(), "Pagi", LocalTime.of(8, 0), LocalTime.of(17, 0));
-        Shift shiftMalam = new Shift(shiftIdCounter.getAndIncrement(), "Malam", LocalTime.of(20, 0),
-                LocalTime.of(5, 0));
-        dbShift.add(shiftPagi);
-        dbShift.add(shiftMalam);
-
         // Pegawai
         Pegawai p1 = new Pegawai(userIdCounter.getAndIncrement(), "Budi Santoso", "budi", "budi123", 1001, "Developer");
         Pegawai p2 = new Pegawai(userIdCounter.getAndIncrement(), "Cindy Pratama", "cindy", "cindy123", 1002,
@@ -84,15 +81,13 @@ public class Main {
             return;
         }
 
-        // --- BAGIAN YANG DITAMBAHKAN ---
         System.out.print("Masukkan password untuk " + admin.getNama() + ": ");
         String passwordInput = scanner.nextLine();
 
         if (!admin.getPassword().equals(passwordInput)) {
             System.out.println("Password salah! Akses ditolak.");
-            return; // Hentikan method jika password salah
+            return;
         }
-        // --- AKHIR BAGIAN YANG DITAMBAHKAN ---
 
         System.out.println("\nLogin berhasil! Selamat datang, " + admin.getNama() + ".");
         int pilihan = -1;
@@ -179,22 +174,19 @@ public class Main {
 
             Pegawai pegawaiDipilih = dbPegawai.get(pilihanUser - 1);
 
-            // --- BAGIAN YANG DITAMBAHKAN ---
             System.out.print("Masukkan password untuk " + pegawaiDipilih.getNama() + ": ");
             String passwordInput = scanner.nextLine();
 
             if (!pegawaiDipilih.getPassword().equals(passwordInput)) {
                 System.out.println("Password salah! Akses ditolak.");
-                return; // Hentikan method jika password salah
+                return;
             }
-            // --- AKHIR BAGIAN YANG DITAMBAHKAN ---
 
             System.out.println("\nLogin berhasil! Selamat datang, " + pegawaiDipilih.getNama() + ".");
             int pilihanMenu = -1;
             while (pilihanMenu != 0) {
                 System.out.println("\n--- Menu Absensi ---");
-                System.out.println("1. Rekam Absensi Masuk");
-                System.out.println("2. Rekam Absensi Keluar");
+                System.out.println("1. Rekam Absensi");
                 System.out.println("0. Logout");
                 System.out.print("Pilihan Anda: ");
 
@@ -203,10 +195,7 @@ public class Main {
 
                 switch (pilihanMenu) {
                     case 1:
-                        rekamAbsensiMasuk(scanner, pegawaiDipilih);
-                        break;
-                    case 2:
-                        rekamAbsensiKeluar(pegawaiDipilih);
+                        rekamAbsensi(scanner, pegawaiDipilih);
                         break;
                     case 0:
                         break;
@@ -222,42 +211,34 @@ public class Main {
         }
     }
 
-    private static void rekamAbsensiMasuk(Scanner scanner, Pegawai p) {
-        System.out.println("\n--- Rekam Absensi Masuk ---");
-        System.out.println("Pilih shift hari ini:");
-        for (int i = 0; i < dbShift.size(); i++) {
-            System.out.println((i + 1) + ". " + dbShift.get(i).getNamaShift());
-        }
-        System.out.print("Pilihan Shift: ");
-        int pilihanShift = scanner.nextInt();
-        scanner.nextLine();
-        Shift shiftHariIni = dbShift.get(pilihanShift - 1);
-
-        LocalTime jamMasuk = LocalTime.now();
-        String status = jamMasuk.isAfter(shiftHariIni.getJamMulai()) ? "Terlambat" : "Hadir";
-
-        Absensi absensiBaru = new Absensi(absensiIdCounter.getAndIncrement(), LocalDate.now(), jamMasuk, status, p,
-                shiftHariIni);
-        dbAbsensi.add(absensiBaru);
-        System.out.println("SUKSES: Absensi masuk berhasil direkam pada jam " + jamMasuk);
-        System.out.println(absensiBaru);
-    }
-
-    private static void rekamAbsensiKeluar(Pegawai p) {
-        System.out.println("\n--- Rekam Absensi Keluar ---");
+    private static void rekamAbsensi(Scanner scanner, Pegawai p) {
         Absensi absensiHariIni = dbAbsensi.stream()
-                .filter(abs -> abs.getPegawai().equals(p) && abs.getTanggal().equals(LocalDate.now())
-                        && abs.getJamKeluar() == null)
+                .filter(abs -> abs.getPegawai().equals(p) && abs.getTanggal().equals(LocalDate.now()))
                 .findFirst().orElse(null);
 
         if (absensiHariIni == null) {
-            System.out.println("Anda belum melakukan absensi masuk hari ini atau sudah merekam jam keluar.");
-            return;
+            System.out.println("\n--- Rekam Absensi Masuk ---");
+            LocalTime jamMasuk = LocalTime.now();
+
+            Absensi absensiBaru = new Absensi(absensiIdCounter.getAndIncrement(), LocalDate.now(), jamMasuk, p);
+
+            dbAbsensi.add(absensiBaru);
+            System.out.println("SUKSES: Absensi masuk berhasil direkam pada jam " + jamMasuk);
+            System.out.println(absensiBaru);
+
+        } else if (absensiHariIni.getJamKeluar() == null) {
+            System.out.println("\n--- Rekam Absensi Keluar ---");
+            LocalTime jamKeluar = LocalTime.now();
+            absensiHariIni.setJamKeluar(jamKeluar);
+            System.out.println("SUKSES: Absensi keluar berhasil direkam pada jam " + jamKeluar);
+            System.out.println(absensiHariIni);
+        } else {
+            System.out.println("\n--- Update Absensi Keluar ---");
+            LocalTime jamKeluarBaru = LocalTime.now();
+            absensiHariIni.setJamKeluar(jamKeluarBaru);
+            System.out.println("SUKSES: Absensi keluar diperbarui ke jam " + jamKeluarBaru);
+            System.out.println(absensiHariIni);
         }
 
-        LocalTime jamKeluar = LocalTime.now();
-        absensiHariIni.setJamKeluar(jamKeluar);
-        System.out.println("SUKSES: Absensi keluar berhasil direkam pada jam " + jamKeluar);
-        System.out.println(absensiHariIni);
     }
 }
